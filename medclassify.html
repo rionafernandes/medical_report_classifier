@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedClassify — Medical Report Classifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060810;
+  --s1:#0d1117;
+  --s2:#101520;
+  --s3:#161d2e;
+  --border:#ffffff0d;
+  --border2:#ffffff16;
+  --border3:#2563eb33;
+  --text:#e2e8f0;
+  --text2:#7a8499;
+  --text3:#b0bcd4;
+  --blue:#3b82f6;
+  --blue-bright:#60a5fa;
+  --blue-dim:#0f1e3d;
+  --blue-mid:#1e3a6e;
+  --green:#34d399;
+  --green-dim:#0a2318;
+  --amber:#fbbf24;
+  --amber-dim:#261a04;
+  --red:#f87171;
+  --red-dim:#200a0a;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --display:'Syne',sans-serif;
+}
+
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5}
+
+/* ── Shell ── */
+.shell{display:grid;grid-template-columns:240px 1fr;height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+.sb{background:var(--s1);border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.sb::-webkit-scrollbar{width:4px}
+.sb::-webkit-scrollbar-track{background:transparent}
+.sb::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.sb-head{padding:24px 20px 18px;border-bottom:1px solid var(--border)}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+.logo-hex{width:32px;height:32px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 16px #3b82f630}
+.logo-hex svg{width:17px;height:17px;fill:#fff}
+.logo-name{font-family:var(--display);font-size:17px;font-weight:700;color:var(--text);letter-spacing:-0.02em}
+.logo-sub{font-size:10px;color:var(--text2);letter-spacing:0.03em;padding-left:42px}
+
+.sb-nav{padding:14px 12px;border-bottom:1px solid var(--border)}
+.nav-btn{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border-radius:8px;border:none;background:transparent;color:var(--text2);font-family:var(--sans);font-size:12.5px;cursor:pointer;transition:all 0.15s;text-align:left;margin-bottom:3px}
+.nav-btn:hover{background:var(--s2);color:var(--text3)}
+.nav-btn.active{background:var(--blue-dim);color:var(--blue-bright);border:1px solid var(--blue-mid)}
+.nav-icon{width:14px;height:14px;flex-shrink:0;opacity:0.6}
+.nav-btn.active .nav-icon{opacity:1}
+
+.sb-section{padding:16px 16px;border-bottom:1px solid var(--border)}
+.sb-sec-label{font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:11px}
+
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11.5px}
+.info-key{color:var(--text2)}
+.info-val{font-family:var(--mono);font-size:10.5px;color:var(--blue-bright);font-weight:500}
+
+.spec-tags{display:flex;flex-wrap:wrap;gap:4px}
+.stag{padding:3px 8px;background:var(--blue-dim);border:1px solid var(--blue-mid);border-radius:5px;font-size:10px;color:var(--blue-bright)}
+
+.guide-row{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:11.5px;color:var(--text3)}
+.gdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── Main area ── */
+.main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+.topbar{background:var(--s1);border-bottom:1px solid var(--border2);padding:0 26px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-left{}
+.topbar-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.02em}
+.topbar-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.theme-pills{display:flex;border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.tpill{padding:6px 14px;font-size:11.5px;font-family:var(--sans);border:none;background:transparent;color:var(--text2);cursor:pointer;transition:all 0.1s}
+.tpill.on{background:var(--blue);color:#fff;font-weight:500}
+
+/* ── Body ── */
+.body-area{display:grid;grid-template-columns:1fr 330px;flex:1;overflow:hidden}
+
+.left-panel{padding:22px 24px;overflow-y:auto}
+.left-panel::-webkit-scrollbar{width:4px}
+.left-panel::-webkit-scrollbar-track{background:transparent}
+.left-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.right-panel{background:var(--s1);border-left:1px solid var(--border2);padding:20px 18px;overflow-y:auto}
+.right-panel::-webkit-scrollbar{width:4px}
+.right-panel::-webkit-scrollbar-track{background:transparent}
+.right-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.section-label{font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:12px}
+
+/* ── Template buttons ── */
+.tpl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:22px}
+.tpl-btn{padding:9px 6px;background:var(--s2);border:1px solid var(--border2);border-radius:9px;color:var(--text3);font-family:var(--sans);font-size:11.5px;cursor:pointer;transition:all 0.14s;text-align:center;font-weight:400;line-height:1.3}
+.tpl-btn:hover{border-color:var(--blue);color:var(--blue-bright);background:var(--blue-dim)}
+.tpl-btn.selected{border-color:var(--blue);color:var(--blue-bright);background:var(--blue-dim);box-shadow:0 0 10px #3b82f620}
+
+/* ── Field tabs ── */
+.field-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px}
+.ftab{padding:8px 18px;font-size:12.5px;font-family:var(--sans);border:none;background:transparent;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.12s}
+.ftab.active{color:var(--blue-bright);border-bottom-color:var(--blue);font-weight:500}
+.ftab:hover:not(.active){color:var(--text3)}
+
+.field-pane{display:none}
+.field-pane.on{display:block}
+
+.field-ta{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;line-height:1.75;color:var(--text);resize:vertical;outline:none;transition:border-color 0.15s;min-height:200px}
+.field-ta:focus{border-color:var(--blue);box-shadow:0 0 0 3px #3b82f614}
+.field-ta::placeholder{color:var(--text2)}
+
+/* ── Classify button ── */
+.classify-btn{width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border:none;border-radius:10px;font-family:var(--display);font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.01em;transition:all 0.14s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px #3b82f625}
+.classify-btn:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 6px 24px #3b82f635}
+.classify-btn:active{transform:translateY(0)}
+.classify-btn svg{width:15px;height:15px;fill:#fff}
+
+/* ── Result area ── */
+.res-empty{padding:52px 16px;text-align:center;color:var(--text2)}
+.res-empty-glyph{font-size:36px;margin-bottom:12px;opacity:0.2;display:block}
+.res-empty-txt{font-size:12.5px;line-height:1.75;color:var(--text2)}
+
+.notice{padding:10px 13px;border-radius:9px;font-size:11.5px;line-height:1.6;margin-bottom:10px;display:flex;gap:8px;align-items:flex-start}
+.notice-g{background:var(--green-dim);border:1px solid #1a4a35;color:#6ee7b7}
+.notice-y{background:var(--amber-dim);border:1px solid #4a3008;color:#fcd34d}
+.notice-r{background:var(--red-dim);border:1px solid #4a1010;color:#fca5a5}
+
+/* ── Prediction card ── */
+.pred-card{background:var(--s2);border:1px solid var(--border3);border-radius:12px;padding:20px;margin-bottom:12px;animation:fadeUp 0.22s ease;position:relative;overflow:hidden}
+.pred-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#1d4ed8,#3b82f6,#60a5fa)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.pred-top-label{font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.pred-specialty{font-family:var(--display);font-size:26px;font-weight:700;color:var(--text);letter-spacing:-0.02em;margin-bottom:10px;line-height:1.1}
+
+.conf-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.conf-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.conf-text{font-size:13px;font-weight:600}
+
+.conf-bar-bg{height:5px;background:var(--border2);border-radius:99px;overflow:hidden;margin-bottom:10px}
+.conf-bar{height:100%;border-radius:99px;transition:width 0.7s cubic-bezier(.4,0,.2,1)}
+
+.conf-words{font-size:10.5px;color:var(--text2);font-family:var(--mono)}
+
+/* ── Candidates card ── */
+.cands-card{background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:16px;animation:fadeUp 0.28s ease}
+.cand-row{padding:8px 0;border-bottom:1px solid var(--border)}
+.cand-row:last-child{border-bottom:none}
+.cand-header{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.cand-rank{font-size:10.5px;color:var(--text2);font-family:var(--mono);width:20px;flex-shrink:0}
+.cand-name{flex:1;font-size:12px;color:var(--text3)}
+.cand-pct{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--text)}
+.cand-row.first .cand-name{color:var(--text);font-weight:500}
+.cand-row.first .cand-pct{color:var(--green)}
+.bar2-bg{height:3px;background:var(--border);border-radius:99px;overflow:hidden}
+.bar2-fill{height:100%;border-radius:99px;background:var(--s3)}
+.cand-row.first .bar2-fill{background:linear-gradient(90deg,#1d4ed8,#34d399)}
+
+/* ── Bulk page ── */
+.bulk-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;gap:16px}
+.bulk-box{border:2px dashed var(--blue-mid);border-radius:14px;padding:52px 40px;cursor:pointer;transition:all 0.14s;background:var(--blue-dim)}
+.bulk-box:hover{border-color:var(--blue);background:#0f1e3d}
+.bulk-title{font-family:var(--display);font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px}
+.bulk-sub{font-size:12.5px;color:var(--text2);line-height:1.75}
+.bulk-code{font-family:var(--mono);font-size:11px;color:var(--blue-bright)}
+.file-upload-btn{margin-top:8px;padding:10px 28px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border:none;border-radius:8px;font-family:var(--display);font-size:13px;font-weight:600;cursor:pointer}
+
+/* ── Light mode overrides ── */
+body.light{
+  --bg:#f0f4ff;--s1:#ffffff;--s2:#f4f6fd;--s3:#e8eef8;
+  --border:rgba(0,0,0,0.06);--border2:rgba(37,99,235,0.15);--border3:rgba(37,99,235,0.25);
+  --text:#0f172a;--text2:#64748b;--text3:#334155;
+  --blue-dim:#eff6ff;--blue-mid:#bfdbfe;--blue-bright:#2563eb;
+  --green-dim:#f0fdf4;--amber-dim:#fffbeb;--red-dim:#fff1f2;
+}
+body.light .pred-card::before{background:linear-gradient(90deg,#2563eb,#60a5fa)}
+body.light .info-val{color:#2563eb}
+body.light .stag{color:#2563eb}
+body.light .ftab.active{color:#2563eb;border-bottom-color:#2563eb}
+body.light .conf-text{color:#1d4ed8}
+body.light .cand-row.first .bar2-fill{background:linear-gradient(90deg,#2563eb,#34d399)}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sb">
+    <div class="sb-head">
+      <div class="logo-row">
+        <div class="logo-hex" style="font-size:18px;background:linear-gradient(135deg,#1d4ed8,#3b82f6)">🏥</div>
+        <div class="logo-name">MedClassifier</div>
+      </div>
+      <div class="logo-sub">Medical Report Classifier · v1.0</div>
+    </div>
+
+    <div class="sb-nav">
+      <button class="nav-btn active" onclick="switchPage('single',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v3H2V2zm0 5h8v3H2V7zm0 5h6v2H2v-2z"/></svg>
+        Single Prediction
+      </button>
+      <button class="nav-btn" onclick="switchPage('bulk',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2h14v2H1V2zm0 4h14v2H1V6zm0 4h14v2H1v-2zm0 4h14v2H1v-2z"/></svg>
+        Bulk Classification
+      </button>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-sec-label">Model Info</div>
+      <div class="info-row"><span class="info-key">Algorithm</span><span class="info-val">LinearSVC</span></div>
+      <div class="info-row"><span class="info-key">Features</span><span class="info-val">TF-IDF 50k</span></div>
+      <div class="info-row"><span class="info-key">Input</span><span class="info-val">desc+trans+kw</span></div>
+      <div class="info-row"><span class="info-key">Classes</span><span class="info-val">11 specialties</span></div>
+      <div class="info-row"><span class="info-key">Accuracy</span><span class="info-val">80%</span></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-sec-label">Supported Specialties</div>
+      <div class="spec-tags">
+        <span class="stag">Cardiovascular</span>
+        <span class="stag">Consult</span>
+        <span class="stag">Gastroenterology</span>
+        <span class="stag">General Med</span>
+        <span class="stag">Neurology</span>
+        <span class="stag">Obstetrics</span>
+        <span class="stag">Orthopedic</span>
+        <span class="stag">Radiology</span>
+        <span class="stag">SOAP/Chart</span>
+        <span class="stag">Surgery</span>
+        <span class="stag">Urology</span>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-sec-label">Confidence Guide</div>
+      <div class="guide-row"><span class="gdot" style="background:#34d399"></span>≥ 70% — High confidence</div>
+      <div class="guide-row"><span class="gdot" style="background:#fbbf24"></span>40–69% — Moderate</div>
+      <div class="guide-row"><span class="gdot" style="background:#f87171"></span>&lt; 40% — Low, add detail</div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title" id="pg-title">Classify a Report</div>
+        <div class="topbar-sub" id="pg-sub">Paste a medical report or load a template to identify the specialty.</div>
+      </div>
+      <div class="theme-pills">
+        <button class="tpill" onclick="setLight(this)">☀ Light</button>
+        <button class="tpill on" onclick="setDark(this)">● Dark</button>
+      </div>
+    </div>
+
+    <!-- SINGLE PAGE -->
+    <div class="body-area" id="single-page">
+
+      <div class="left-panel">
+        <div class="section-label">Load an Example Template</div>
+        <div class="tpl-grid">
+          <button class="tpl-btn" onclick="loadTpl('cardio',this)">🫀 Cardiovascular</button>
+          <button class="tpl-btn" onclick="loadTpl('neuro',this)">🧠 Neurology</button>
+          <button class="tpl-btn" onclick="loadTpl('ortho',this)">🦴 Orthopedic</button>
+          <button class="tpl-btn" onclick="loadTpl('gastro',this)">🔬 Gastroenterology</button>
+          <button class="tpl-btn" onclick="loadTpl('surg',this)">🏥 Surgery</button>
+          <button class="tpl-btn" onclick="loadTpl('obs',this)">🤱 Obstetrics</button>
+          <button class="tpl-btn" onclick="loadTpl('rad',this)">📡 Radiology</button>
+          <button class="tpl-btn" onclick="loadTpl('uro',this)">💊 Urology</button>
+        </div>
+
+        <div class="section-label">Enter Report Details</div>
+        <div class="field-tabs">
+          <button class="ftab active" onclick="switchTab(this,'trans')">Transcription</button>
+          <button class="ftab" onclick="switchTab(this,'desc')">Description</button>
+          <button class="ftab" onclick="switchTab(this,'kw')">Keywords</button>
+        </div>
+
+        <div class="field-pane on" id="pane-trans">
+          <textarea class="field-ta" id="inp-trans" rows="10"
+            placeholder="Paste the full clinical transcription here, or type a brief symptom like 'chest pain'…"></textarea>
+        </div>
+        <div class="field-pane" id="pane-desc">
+          <textarea class="field-ta" id="inp-desc" rows="6"
+            placeholder="e.g. A 58-year-old male presents with chest pain radiating to the left arm…"></textarea>
+        </div>
+        <div class="field-pane" id="pane-kw">
+          <textarea class="field-ta" id="inp-kw" rows="6"
+            placeholder="e.g. cardiology, chest pain, ECG, troponin, myocardial infarction…"></textarea>
+        </div>
+
+        <button class="classify-btn" onclick="classify()">
+          <svg viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" stroke-width="2" fill="none"/></svg>
+          Classify Report
+        </button>
+      </div>
+
+      <div class="right-panel">
+        <div class="section-label">Prediction Result</div>
+        <div id="result-area">
+          <div class="res-empty">
+            <span class="res-empty-glyph">⬡</span>
+            <div class="res-empty-txt">Load a template or enter report details,<br>then click <strong>Classify Report</strong></div>
+          </div>
+        </div>
+
+        <div id="cands-area" style="display:none;margin-top:16px">
+          <div class="section-label">Top 5 Candidates</div>
+          <div class="cands-card" id="cands-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BULK PAGE -->
+    <div class="body-area" id="bulk-page" style="display:none">
+      <div class="left-panel" style="display:flex;align-items:center;justify-content:center">
+        <div class="bulk-drop">
+          <label>
+            <div class="bulk-box">
+              <div class="bulk-title">📂 Upload CSV File</div>
+              <div class="bulk-sub" style="margin-bottom:10px">Expected columns (at least one required):</div>
+              <div class="bulk-code">description &nbsp;·&nbsp; transcription &nbsp;·&nbsp; keywords</div>
+              <input type="file" accept=".csv" style="display:none" onchange="handleCsv(this)">
+              <button class="file-upload-btn" style="margin-top:20px">Choose File</button>
+            </div>
+          </label>
+          <div id="csv-status" style="font-size:12px;color:var(--text2)"></div>
+        </div>
+      </div>
+      <div class="right-panel" style="display:flex;align-items:center;justify-content:center;text-align:center">
+        <div style="color:var(--text2);font-size:12.5px;line-height:1.8">
+          <span style="font-size:28px;display:block;margin-bottom:12px;opacity:0.3">📊</span>
+          Summary stats and results<br>will appear here after classification.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+const TEMPLATES = {
+  cardio:{
+    trans:"Patient is a 58-year-old male with a history of hypertension presenting with acute onset chest pain radiating to the left arm, associated with diaphoresis and shortness of breath. ECG shows ST elevation in leads II, III, aVF. Troponin levels are elevated at 2.4 ng/mL. Patient was started on aspirin 325mg, heparin drip, and nitroglycerin. Cardiology was consulted for emergent catheterization. Diagnosis: Acute inferior myocardial infarction.",
+    desc:"A 58-year-old male presents with chest pain and shortness of breath.",
+    kw:"chest pain, myocardial infarction, ECG, troponin, cardiovascular, angina, heparin",
+    result:{specialty:"Cardiovascular / Pulmonary",conf:82.4,cands:[["Cardiovascular / Pulmonary",82.4],["Consult - History and Phy.",6.4],["General Medicine",3.4],["Orthopedic",2.2],["Neurology",1.6]]}
+  },
+  neuro:{
+    trans:"A 45-year-old female presents with sudden onset thunderclap headache, described as the worst headache of her life, associated with neck stiffness, photophobia, and mild confusion. CT head reveals subarachnoid hemorrhage. Lumbar puncture shows xanthochromia. Neurosurgery consulted for aneurysm clipping. Started on nimodipine for vasospasm prevention.",
+    desc:"Patient presents with sudden onset severe headache and confusion.",
+    kw:"headache, subarachnoid hemorrhage, neurology, CT scan, lumbar puncture, aneurysm",
+    result:{specialty:"Neurology",conf:91.2,cands:[["Neurology",91.2],["General Medicine",4.1],["Radiology",2.3],["Consult",1.5],["Surgery",0.9]]}
+  },
+  ortho:{
+    trans:"Patient is a 32-year-old male athlete who twisted his right knee during a football game. Presents with immediate pain, swelling, and inability to bear weight. Positive anterior drawer test and Lachman test indicating ACL tear. MRI confirms complete ACL rupture with medial meniscus tear. Orthopedic surgery recommended for ACL reconstruction.",
+    desc:"A 32-year-old athlete with acute knee pain after sports injury.",
+    kw:"knee pain, ACL tear, orthopedic, MRI, ligament, sports injury, meniscus",
+    result:{specialty:"Orthopedic",conf:88.7,cands:[["Orthopedic",88.7],["General Medicine",5.2],["Surgery",3.1],["Neurology",1.7],["Consult",1.3]]}
+  },
+  gastro:{
+    trans:"A 40-year-old female presents with 3-day history of epigastric pain, nausea, vomiting, and bloating. Pain worsens after meals. History of H. pylori infection 2 years ago. Endoscopy reveals gastric ulcer. Biopsy taken. Started on triple therapy: amoxicillin, clarithromycin, and proton pump inhibitor. Diagnosis: Peptic ulcer disease.",
+    desc:"Patient with abdominal pain, nausea, and vomiting.",
+    kw:"abdominal pain, peptic ulcer, gastroscopy, H. pylori, gastroenterology, endoscopy",
+    result:{specialty:"Gastroenterology",conf:76.3,cands:[["Gastroenterology",76.3],["General Medicine",11.4],["Surgery",6.2],["Consult",3.8],["Urology",2.3]]}
+  },
+  surg:{
+    trans:"A 25-year-old male presents with 24-hour history of right lower quadrant pain, fever of 101.2F, nausea, and rebound tenderness. WBC elevated at 14,000. CT abdomen confirms acute appendicitis with no perforation. Patient taken to OR for laparoscopic appendectomy. Procedure completed without complications. Discharged POD2.",
+    desc:"Patient requires emergency appendectomy for acute appendicitis.",
+    kw:"appendicitis, surgery, laparoscopic, appendectomy, right lower quadrant, WBC, CT abdomen",
+    result:{specialty:"Surgery",conf:93.1,cands:[["Surgery",93.1],["General Medicine",3.8],["Gastroenterology",1.9],["Consult",0.8],["Urology",0.4]]}
+  },
+  obs:{
+    trans:"A 30-year-old female at 28 weeks gestation presents with blood pressure of 158/102 mmHg, headache, visual disturbances, and 2+ proteinuria on urinalysis. Fetal heart rate is normal. Diagnosis: Preeclampsia. Started on magnesium sulfate for seizure prophylaxis and labetalol for blood pressure control.",
+    desc:"28-week pregnant female with elevated blood pressure.",
+    kw:"preeclampsia, obstetrics, pregnancy, blood pressure, proteinuria, magnesium sulfate",
+    result:{specialty:"Obstetrics / Gynecology",conf:96.4,cands:[["Obstetrics / Gynecology",96.4],["General Medicine",2.1],["Consult",0.9],["Cardiovascular",0.4],["Neurology",0.2]]}
+  },
+  rad:{
+    trans:"CT chest with contrast performed for evaluation of right upper lobe mass noted on prior chest X-ray. Findings reveal a 2.3 cm spiculated mass in the right upper lobe with mediastinal lymphadenopathy. No pleural effusion. Impression: Findings highly suspicious for primary lung malignancy. Recommend PET scan and biopsy.",
+    desc:"CT scan interpretation for chest mass evaluation.",
+    kw:"CT chest, radiology, lung mass, mediastinal lymphadenopathy, PET scan, biopsy, imaging",
+    result:{specialty:"Radiology",conf:84.6,cands:[["Radiology",84.6],["Surgery",7.1],["General Medicine",4.3],["Cardiovascular",2.6],["Neurology",1.4]]}
+  },
+  uro:{
+    trans:"A 65-year-old male presents with 3-week history of gross hematuria, urinary frequency, urgency, and weak stream. PSA elevated at 8.2 ng/mL. Digital rectal exam reveals enlarged prostate. CT urogram shows bladder mass. Cystoscopy performed — biopsy confirms transitional cell carcinoma. Referred for TURBT.",
+    desc:"Male patient with hematuria and lower urinary tract symptoms.",
+    kw:"hematuria, urology, bladder cancer, PSA, cystoscopy, TURBT, prostate, urinary tract",
+    result:{specialty:"Urology",conf:87.6,cands:[["Urology",87.6],["Consult - History and Phy.",4.0],["General Medicine",1.9],["Orthopedic",1.4],["Cardiovascular / Pulmonary",1.3]]}
+  }
+};
+
+let selectedTpl = null;
+
+function loadTpl(key, btn) {
+  document.querySelectorAll('.tpl-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const t = TEMPLATES[key];
+  document.getElementById('inp-trans').value = t.trans;
+  document.getElementById('inp-desc').value = t.desc;
+  document.getElementById('inp-kw').value = t.kw;
+  selectedTpl = key;
+}
+
+function switchTab(btn, pane) {
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.field-pane').forEach(p => p.classList.remove('on'));
+  btn.classList.add('active');
+  document.getElementById('pane-' + pane).classList.add('on');
+}
+
+function switchPage(name, btn) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('single-page').style.display = name === 'single' ? '' : 'none';
+  document.getElementById('bulk-page').style.display = name === 'bulk' ? '' : 'none';
+  document.getElementById('pg-title').textContent = name === 'single' ? 'Classify a Report' : 'Bulk Classification';
+  document.getElementById('pg-sub').textContent = name === 'single'
+    ? 'Paste a medical report or load a template to identify the specialty.'
+    : 'Upload a CSV to classify multiple records at once.';
+}
+
+function setDark(btn) {
+  document.querySelectorAll('.tpill').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.body.classList.remove('light');
+}
+
+function setLight(btn) {
+  document.querySelectorAll('.tpill').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.body.classList.add('light');
+}
+
+// ── Change this to your deployed URL if hosting remotely ──
+const API_URL = 'http://localhost:8000/predict';
+
+async function classify() {
+  const trans = document.getElementById('inp-trans').value.trim();
+  const desc  = document.getElementById('inp-desc').value.trim();
+  const kw    = document.getElementById('inp-kw').value.trim();
+
+  if (!trans && !desc && !kw) {
+    document.getElementById('result-area').innerHTML =
+      '<div class="notice notice-y">⚠ Please enter at least one field before classifying.</div>';
+    return;
+  }
+
+  const words = (trans + ' ' + desc + ' ' + kw).split(/\s+/).filter(Boolean).length;
+
+  // Loading state
+  document.getElementById('result-area').innerHTML = `
+    <div class="pred-card" style="text-align:center;padding:36px 20px">
+      <div style="font-size:28px;margin-bottom:12px;display:inline-block;animation:spin 0.9s linear infinite">⟳</div>
+      <div style="color:var(--text2);font-size:12.5px">Analyzing report with LinearSVC…</div>
+    </div>`;
+  document.getElementById('cands-area').style.display = 'none';
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transcription: trans, description: desc, keywords: kw })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    // Expected response shape from api.py:
+    // { specialty, confidence (0-1), top5: [[label, score], ...], was_expanded }
+    renderResult({
+      specialty: data.specialty,
+      conf:      data.confidence * 100,
+      cands:     data.top5.map(([l, s]) => [l, +(s * 100).toFixed(1)])
+    }, words, data.was_expanded);
+
+  } catch (err) {
+    // Graceful fallback to demo mode when backend is offline
+    console.warn('Backend offline, using demo mode:', err.message);
+    const result = selectedTpl
+      ? TEMPLATES[selectedTpl].result
+      : inferResult(trans + ' ' + desc + ' ' + kw);
+    renderResult(result, words, words < 12);
+    document.getElementById('result-area').insertAdjacentHTML('afterbegin',
+      `<div class="notice notice-y">⚠ Backend offline — demo result shown.
+       Run <code style="font-family:var(--mono);font-size:10px;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:4px">uvicorn api:app --reload</code> to connect.</div>`);
+  }
+}
+
+function inferResult(text) {
+  const t = text.toLowerCase();
+  if (t.includes('heart') || t.includes('cardiac') || t.includes('ecg') || t.includes('troponin')) return TEMPLATES.cardio.result;
+  if (t.includes('headache') || t.includes('neuro') || t.includes('brain') || t.includes('seizure')) return TEMPLATES.neuro.result;
+  if (t.includes('knee') || t.includes('bone') || t.includes('fracture') || t.includes('acl')) return TEMPLATES.ortho.result;
+  if (t.includes('gastro') || t.includes('stomach') || t.includes('ulcer') || t.includes('abdomen')) return TEMPLATES.gastro.result;
+  if (t.includes('appendix') || t.includes('appendicitis') || t.includes('laparoscop')) return TEMPLATES.surg.result;
+  if (t.includes('pregnant') || t.includes('gestation') || t.includes('obstet') || t.includes('preeclampsia')) return TEMPLATES.obs.result;
+  if (t.includes('radiol') || t.includes('ct scan') || t.includes('imaging') || t.includes('lymphadenopathy')) return TEMPLATES.rad.result;
+  if (t.includes('urin') || t.includes('bladder') || t.includes('psa') || t.includes('prostate') || t.includes('hematuria')) return TEMPLATES.uro.result;
+  return {
+    specialty: "General Medicine",
+    conf: 44.2,
+    cands: [["General Medicine",44.2],["Consult",21.1],["Cardiovascular",12.4],["Neurology",11.8],["Surgery",10.5]]
+  };
+}
+
+function renderResult(r, words, wasShort) {
+  const c = r.conf;
+  const dotColor = c >= 70 ? '#34d399' : c >= 40 ? '#fbbf24' : '#f87171';
+  const confLabel = c >= 70 ? 'High Confidence' : c >= 40 ? 'Moderate Confidence' : 'Low Confidence';
+
+  let notices = '';
+  if (wasShort) notices += `<div class="notice notice-g">✦ Symptom Expander Active — Short input detected, automatically expanded to clinical context for better accuracy.</div>`;
+  if (c < 40) notices += `<div class="notice notice-r">⚠ Low confidence — add symptoms, medications, or diagnosis details.</div>`;
+  else if (c < 70) notices += `<div class="notice notice-y">◎ Moderate confidence — more clinical detail will improve accuracy.</div>`;
+
+  document.getElementById('result-area').innerHTML = `
+    ${notices}
+    <div class="pred-card">
+      <div class="pred-top-label">Predicted Specialty</div>
+      <div class="pred-specialty">${r.specialty}</div>
+      <div class="conf-row">
+        <span class="conf-dot" style="background:${dotColor};box-shadow:0 0 6px ${dotColor}88"></span>
+        <span class="conf-text" style="color:${dotColor}">${confLabel}: ${c.toFixed(1)}%</span>
+      </div>
+      <div class="conf-bar-bg">
+        <div class="conf-bar" style="width:${Math.min(c,100)}%;background:${dotColor}"></div>
+      </div>
+      <div class="conf-words">${words} words analyzed · LinearSVC · TF-IDF 50k</div>
+    </div>`;
+
+  const maxVal = r.cands[0][1];
+  const candsHtml = r.cands.map((cd, i) => {
+    const pct = cd[1];
+    const barW = ((pct / maxVal) * 100).toFixed(1);
+    return `<div class="cand-row ${i === 0 ? 'first' : ''}">
+      <div class="cand-header">
+        <span class="cand-rank">${i === 0 ? '🥇' : (i + 1) + '.'}</span>
+        <span class="cand-name">${cd[0]}</span>
+        <span class="cand-pct">${pct.toFixed(1)}%</span>
+      </div>
+      <div class="bar2-bg"><div class="bar2-fill" style="width:${barW}%"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cands-list').innerHTML = candsHtml;
+  document.getElementById('cands-area').style.display = 'block';
+}
+
+function handleCsv(input) {
+  const f = input.files[0];
+  if (!f) return;
+  document.getElementById('csv-status').textContent = `✓ Loaded: ${f.name} (${(f.size/1024).toFixed(1)} KB) — connect to backend to classify.`;
+}
+</script>
+</body>
+</html>
